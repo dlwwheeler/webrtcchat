@@ -1,51 +1,15 @@
-let peerConnection;
-const config = {
-	  iceServers: [
-		      {
-			            urls: ["stun:stun.l.google.com:19302"]
-			          }
-		    ]
-};
-
-const socket = io.connect(window.location.origin);
 const video = document.querySelector("video");
-
-socket.on("offer", (id, description) => {
-	  peerConnection = new RTCPeerConnection(config);
-	  peerConnection
-	    .setRemoteDescription(description)
-	    .then(() => peerConnection.createAnswer())
-	    .then(sdp => peerConnection.setLocalDescription(sdp))
-	    .then(() => {
-		          socket.emit("answer", id, peerConnection.localDescription);
-		        });
-	  peerConnection.ontrack = event => {
-		      video.srcObject = event.streams[0];
-		    };
-	  peerConnection.onicecandidate = event => {
-		      if (event.candidate) {
-			            socket.emit("candidate", id, event.candidate);
-			          }
-		    };
-});
-socket.on("candidate", (id, candidate) => {
-	  peerConnection
-	    .addIceCandidate(new RTCIceCandidate(candidate))
-	    .catch(e => console.error(e));
+const thisPeer = new Peer('thatID', {key:"peerjs", host:"135.180.41.233", port:9000, path:"/home/devan/Projects/webrtcchat"});
+var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+thisPeer.on('call', function(call) {
+	getUserMedia({video: true, audio: true}, function(stream) {
+		call.answer(stream); // Answer the call with an A/V stream.
+		call.on('stream',function(remoteStream) {
+			video.srcObject = remoteStream;
+		});
+	}, function(err){
+		console.log('Error with stream', err);
+	});
 });
 
-socket.on("connect", () => {
-	  socket.emit("watcher");
-});
 
-socket.on("broadcaster", () => {
-	  socket.emit("watcher");
-});
-
-socket.on("disconnectPeer", () => {
-	  peerConnection.close();
-});
-
-window.onunload = window.onbeforeunload = () => {
-	  socket.close();
-};
