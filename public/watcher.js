@@ -1,5 +1,5 @@
 const video = document.querySelector("video");
-const thisPeer = new Peer('thatID', {key:"peerjs", host:"135.180.41.233", port:9000, path:"/home/devan/Projects/webrtcchat"});
+const thisPeer = new Peer('thatID', {secure: true, key:"peerjs", host:"135.180.41.233", port:9000, path:"/home/devan/Projects/webrtcchat"});
 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 thisPeer.on('call', function(call) {
 	getUserMedia({video: true, audio: true}, function(stream) {
